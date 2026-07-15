@@ -51,6 +51,19 @@ def _check_columns(df: pd.DataFrame, required, label):
     return {c: have[c.lower()] for c in required}
 
 
+def validate_master(master_bytes: bytes) -> None:
+    """Check an inventory file is readable and has the required columns.
+
+    Used before storing an inventory so a bad file can never become the
+    stored one. Raises CompareError with a user-facing message if invalid.
+    """
+    try:
+        master = _norm_cols(pd.read_excel(BytesIO(master_bytes)))
+    except Exception as e:
+        raise CompareError(f"Could not read the inventory file as Excel. ({e})")
+    _check_columns(master, MASTER_REQUIRED, "inventory")
+
+
 def build_comparison(master_bytes: bytes, supplier_bytes: bytes) -> BytesIO:
     """Take two uploaded xlsx files (as bytes), return a formatted xlsx in a BytesIO."""
     try:
@@ -77,9 +90,15 @@ def build_comparison(master_bytes: bytes, supplier_bytes: bytes) -> BytesIO:
         shop = shop.drop(columns=["Current Cost"])  # drop stale shop copy; supplier provides live
 
     out = shop.merge(supp_slim, on="Barcode", how="left")
+    matched_mask = out["Supplier Current Cost"].notna()
     out["Match Status"] = np.where(
-        out["Supplier Current Cost"].notna(), "Matched (Barcode)", "NOT FOUND in supplier sheet"
+        matched_mask, "Matched (Barcode)", "NOT FOUND in supplier sheet"
     )
+
+    # Matched items first (the ones actually being compared), NOT FOUND below.
+    # Stable sort preserves the original inventory order within each group.
+    out["_match_rank"] = np.where(matched_mask, 0, 1)
+    out = out.sort_values("_match_rank", kind="stable").drop(columns="_match_rank").reset_index(drop=True)
 
     # Keep only known output columns that exist (be tolerant of missing optional ones)
     present = [c for c in OUTPUT_COLS if c in out.columns]

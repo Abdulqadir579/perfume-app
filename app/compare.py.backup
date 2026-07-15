@@ -16,6 +16,7 @@ from openpyxl.formatting.rule import CellIsRule, FormulaRule
 
 FONT = "Arial"
 LOW_MARGIN_THRESHOLD = 0.15  # below this = "Low Margin"
+DELTA = "\u0394"  # Greek delta, kept out of f-string expressions for py3.9 compatibility
 
 # Columns we require to exist (case-insensitive, trimmed)
 MASTER_REQUIRED = ["Barcode", "Last Cost", "Market/Selling Price"]
@@ -76,9 +77,15 @@ def build_comparison(master_bytes: bytes, supplier_bytes: bytes) -> BytesIO:
         shop = shop.drop(columns=["Current Cost"])  # drop stale shop copy; supplier provides live
 
     out = shop.merge(supp_slim, on="Barcode", how="left")
+    matched_mask = out["Supplier Current Cost"].notna()
     out["Match Status"] = np.where(
-        out["Supplier Current Cost"].notna(), "Matched (Barcode)", "NOT FOUND in supplier sheet"
+        matched_mask, "Matched (Barcode)", "NOT FOUND in supplier sheet"
     )
+
+    # Matched items first (the ones actually being compared), NOT FOUND below.
+    # Stable sort preserves the original inventory order within each group.
+    out["_match_rank"] = np.where(matched_mask, 0, 1)
+    out = out.sort_values("_match_rank", kind="stable").drop(columns="_match_rank").reset_index(drop=True)
 
     # Keep only known output columns that exist (be tolerant of missing optional ones)
     present = [c for c in OUTPUT_COLS if c in out.columns]
@@ -109,21 +116,25 @@ def _style_workbook(df: pd.DataFrame) -> BytesIO:
     supp_cost_c = get_column_letter(col["Supplier Current Cost"])
     sell_c = get_column_letter(col["Market/Selling Price"])
 
-    new_headers = ["Cost Diff (AED)", "Cost Change %", "Old Margin %",
-                   "New Margin %", "Margin \u0394 (pts)", "Price Flag", "Margin Flag"]
+    new_headers = ["Cost Diff (AED)", "Cost Change %", "Old Margin", "New Margin",
+                   "Old Margin %", "New Margin %", "Margin " + DELTA + " (pts)",
+                   "Price Flag", "Margin Flag"]
     start = ncol + 1
     for i, h in enumerate(new_headers):
         ws.cell(row=1, column=start + i, value=h)
     C = {h: get_column_letter(start + i) for i, h in enumerate(new_headers)}
 
     lm = LOW_MARGIN_THRESHOLD
+    _md = "Margin " + DELTA + " (pts)"
     for r in range(2, nrow + 1):
         lc, sc, sp = f"{last_cost_c}{r}", f"{supp_cost_c}{r}", f"{sell_c}{r}"
         ws[f'{C["Cost Diff (AED)"]}{r}'] = f'=IF({sc}="","",{sc}-{lc})'
         ws[f'{C["Cost Change %"]}{r}'] = f'=IF(OR({sc}="",{lc}=0),"",({sc}-{lc})/{lc})'
+        ws[f'{C["Old Margin"]}{r}'] = f'={sp}-{lc}'
+        ws[f'{C["New Margin"]}{r}'] = f'=IF({sc}="","",{sp}-{sc})'
         ws[f'{C["Old Margin %"]}{r}'] = f'=IF({sp}=0,"",({sp}-{lc})/{sp})'
         ws[f'{C["New Margin %"]}{r}'] = f'=IF(OR({sc}="",{sp}=0),"",({sp}-{sc})/{sp})'
-        ws[f'{C["Margin \u0394 (pts)"]}{r}'] = f'=IF(OR({sc}="",{sp}=0),"",(({sp}-{sc})/{sp})-(({sp}-{lc})/{sp}))'
+        ws[C[_md] + str(r)] = f'=IF(OR({sc}="",{sp}=0),"",(({sp}-{sc})/{sp})-(({sp}-{lc})/{sp}))'
         ws[f'{C["Price Flag"]}{r}'] = f'=IF({sc}="","No Data",IF({sc}>{lc},"Cost Up",IF({sc}<{lc},"Cost Down","Unchanged")))'
         ws[f'{C["Margin Flag"]}{r}'] = f'=IF({sc}="","No Data",IF(({sp}-{sc})/{sp}<0,"LOSS",IF(({sp}-{sc})/{sp}<{lm},"Low Margin","Healthy")))'
 
@@ -136,8 +147,13 @@ def _style_workbook(df: pd.DataFrame) -> BytesIO:
         cell.border = border
     ws.row_dimensions[1].height = 30
 
-    money_cols = {col["Last Cost"], col["Supplier Current Cost"], col["Market/Selling Price"], start + 0}
-    pct_cols = {start + 1, start + 2, start + 3, start + 4}
+    from openpyxl.utils import column_index_from_string
+    money_names = ["Last Cost", "Supplier Current Cost", "Market/Selling Price",
+                   "Cost Diff (AED)", "Old Margin", "New Margin"]
+    pct_names = ["Cost Change %", "Old Margin %", "New Margin %", "Margin " + DELTA + " (pts)"]
+    money_cols = {col[n] for n in money_names if n in col} | \
+                 {column_index_from_string(C[n]) for n in money_names if n in C}
+    pct_cols = {column_index_from_string(C[n]) for n in pct_names if n in C}
     for r in range(2, nrow + 1):
         for c in range(1, total_cols + 1):
             cell = ws.cell(row=r, column=c)
@@ -154,7 +170,8 @@ def _style_workbook(df: pd.DataFrame) -> BytesIO:
     widths = {"Barcode": 13, "SKU": 10, "Brand": 12, "Perfume Name": 20, "Description": 30,
               "Size (ml)": 8, "Gender": 8, "Category": 9, "Stock Qty": 8, "Country of Origin": 13,
               "Last Cost": 10, "Supplier Current Cost": 14, "Market/Selling Price": 13,
-              "Match Status": 18, "Cost Diff (AED)": 12, "Cost Change %": 11, "Old Margin %": 11,
+              "Match Status": 18, "Cost Diff (AED)": 12, "Cost Change %": 11,
+              "Old Margin": 11, "New Margin": 11, "Old Margin %": 11,
               "New Margin %": 11, "Margin \u0394 (pts)": 12, "Price Flag": 11, "Margin Flag": 12}
     for i, cell in enumerate(ws[1]):
         ws.column_dimensions[get_column_letter(i + 1)].width = widths.get(cell.value, 12)

@@ -64,18 +64,82 @@ def validate_master(master_bytes: bytes) -> None:
     _check_columns(master, MASTER_REQUIRED, "inventory")
 
 
+def merge_inventories(files: list) -> tuple:
+    """Merge multiple inventory files into one DataFrame.
+
+    files: list of (filename, bytes).
+    Returns (merged_df, info) where info has row counts and duplicate details.
+
+    If the same Barcode appears in more than one file, the LAST-uploaded row
+    wins (files are processed in upload order) and the collapse is reported so
+    the user is never silently given a wrong cost.
+    """
+    if not files:
+        raise CompareError("No inventory files are stored yet. Upload at least one first.")
+
+    frames = []
+    per_file = []
+    for filename, data in files:
+        try:
+            df = _norm_cols(pd.read_excel(BytesIO(data)))
+        except Exception as e:
+            raise CompareError(f"Could not read inventory file '{filename}' as Excel. ({e})")
+        m_cols = _check_columns(df, MASTER_REQUIRED, f"inventory file '{filename}'")
+        df = df.rename(columns={m_cols["Barcode"]: "Barcode"})
+        df["_source_file"] = filename
+        frames.append(df)
+        per_file.append((filename, len(df)))
+
+    combined = pd.concat(frames, ignore_index=True)
+    total_rows = len(combined)
+
+    # Which barcodes appear in more than one row (across files)?
+    dup_mask = combined.duplicated(subset="Barcode", keep=False)
+    dup_barcodes = combined.loc[dup_mask, "Barcode"].nunique()
+
+    # Keep the last occurrence per barcode (last-uploaded file wins).
+    merged = combined.drop_duplicates(subset="Barcode", keep="last").reset_index(drop=True)
+    merged = merged.drop(columns=["_source_file"])
+
+    info = {
+        "file_count": len(files),
+        "per_file": per_file,
+        "total_rows_before_dedup": total_rows,
+        "unique_products": len(merged),
+        "duplicate_barcodes": int(dup_barcodes),
+        "rows_collapsed": total_rows - len(merged),
+    }
+    return merged, info
+
+
+def build_comparison_multi(inventory_files: list, supplier_bytes: bytes) -> tuple:
+    """Compare a supplier sheet against MERGED multi-file inventory.
+
+    Returns (BytesIO xlsx, merge_info) so the caller can surface duplicate warnings.
+    """
+    merged, info = merge_inventories(inventory_files)
+    result = _compare_master_df_to_supplier(merged, supplier_bytes)
+    return result, info
+
+
 def build_comparison(master_bytes: bytes, supplier_bytes: bytes) -> BytesIO:
     """Take two uploaded xlsx files (as bytes), return a formatted xlsx in a BytesIO."""
     try:
         master = _norm_cols(pd.read_excel(BytesIO(master_bytes)))
     except Exception as e:
         raise CompareError(f"Could not read the shop master file as Excel. ({e})")
+    m_cols = _check_columns(master, MASTER_REQUIRED, "shop master")
+    master = master.rename(columns={m_cols["Barcode"]: "Barcode"})
+    return _compare_master_df_to_supplier(master, supplier_bytes)
+
+
+def _compare_master_df_to_supplier(shop: "pd.DataFrame", supplier_bytes: bytes) -> BytesIO:
+    """Shared comparison core. `shop` already has a 'Barcode' column."""
     try:
         supplier = _norm_cols(pd.read_excel(BytesIO(supplier_bytes)))
     except Exception as e:
         raise CompareError(f"Could not read the supplier file as Excel. ({e})")
 
-    m_cols = _check_columns(master, MASTER_REQUIRED, "shop master")
     s_cols = _check_columns(supplier, SUPPLIER_REQUIRED, "supplier")
 
     # Pull only the unique key + live price from supplier
@@ -85,7 +149,6 @@ def build_comparison(master_bytes: bytes, supplier_bytes: bytes) -> BytesIO:
     # De-dupe supplier on barcode (keep last occurrence) to avoid row explosion
     supp_slim = supp_slim.drop_duplicates(subset="Barcode", keep="last")
 
-    shop = master.rename(columns={m_cols["Barcode"]: "Barcode"})
     if "Current Cost" in shop.columns:
         shop = shop.drop(columns=["Current Cost"])  # drop stale shop copy; supplier provides live
 

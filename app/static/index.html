@@ -46,6 +46,131 @@
   .inv-name{font-weight:600;font-size:.92rem;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
   .inv-sub{font-size:.78rem;color:var(--muted);margin-top:2px}
   .inv-acts{display:flex;gap:8px;flex:none}
+  .inv-list{display:flex;flex-direction:column;gap:8px;margin-bottom:14px}
+  .inv-list:empty{display:none}
+  .inv-row{
+    display:flex;align-items:center;gap:12px;
+    background:#f7f4ee;border:1px solid var(--line);border-radius:10px;padding:10px 12px
+  }
+  .inv-row .dot{width:8px;height:8px;border-radius:50%;background:var(--ok);flex:none}
+  .inv-row .meta{flex:1;min-width:0}
+  .inv-row .fn{font-weight:600;font-size:.88rem;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+  .inv-row .fsub{font-size:.75rem;color:var(--muted);margin-top:1px}
+  .inv-row .rm{
+    border:none;background:none;color:var(--muted);cursor:pointer;font-size:1rem;
+    flex:none;padding:2px 6px;border-radius:6px
+  }
+  .inv-row .rm:hover{color:var(--bad);background:#fbe9e7}
+  .inv-summary{font-size:.82rem;color:var(--muted);margin-bottom:12px}
+  .inv-summary:empty{display:none}
+  .inv-summary b{color:var(--ink)}
+  .drop-add{padding:18px 14px}
+  .inv-foot{display:none;justify-content:flex-end;margin-top:12px}
+  .inv-foot.show{display:flex}
+  .warn{
+    margin-top:14px;border-radius:10px;padding:12px 14px;font-size:.85rem;line-height:1.45;
+    display:none;background:#fff4e0;color:#8a5a12;border:1px solid #f0d9a8
+  }
+  .warn.show{display:block}
+  .sup-list{display:flex;flex-direction:column;gap:10px;margin-bottom:14px}
+  .sup-list:empty{display:none}
+  .sup-item{border:1px solid var(--line);border-radius:11px;overflow:hidden}
+  .sup-head{display:flex;align-items:center;gap:10px;padding:11px 13px;background:#f7f4ee}
+  .sup-code{
+    font-weight:700;font-size:.72rem;letter-spacing:.06em;color:#fff;background:var(--ink);
+    padding:3px 7px;border-radius:5px;flex:none
+  }
+  .sup-nm{flex:1;min-width:0;font-weight:600;font-size:.9rem;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+  .sup-cur{font-size:.74rem;color:var(--muted);flex:none}
+  .sup-x{border:none;background:none;color:var(--muted);cursor:pointer;font-size:.95rem;padding:2px 5px;border-radius:5px;flex:none}
+  .sup-x:hover{color:var(--bad);background:#fbe9e7}
+  .sup-body{padding:11px 13px;border-top:1px solid var(--line)}
+  .sheet-row{display:flex;align-items:center;gap:9px;font-size:.79rem;padding:4px 0;color:var(--muted)}
+  .sheet-ref{font-family:ui-monospace,SFMono-Regular,Menlo,monospace;color:var(--ink);font-weight:600}
+  .sheet-cur{font-size:.66rem;background:#d9ead3;color:#2f7d4f;padding:1px 6px;border-radius:4px;font-weight:700}
+  .sheet-dl{margin-left:auto;color:var(--amber-deep);cursor:pointer;text-decoration:none;font-weight:600}
+  .sheet-dl:hover{text-decoration:underline}
+  .up-btn{
+    margin-top:9px;width:100%;border:1.5px dashed var(--line);background:#fff;border-radius:9px;
+    padding:9px;font-size:.82rem;cursor:pointer;font-family:inherit;color:var(--amber-deep);font-weight:600
+  }
+  .up-btn:hover{border-color:var(--amber)}
+  .add-sup{display:flex;gap:8px}
+  .add-sup input{
+    border:1px solid var(--line);border-radius:9px;padding:9px 11px;font-size:.86rem;
+    font-family:inherit;color:var(--ink);min-width:0
+  }
+  .add-sup input:focus{outline:none;border-color:var(--amber)}
+  #newCode{width:112px;flex:none;text-transform:uppercase}
+  #newName{flex:1}
+  .cmp-note{margin:0 0 4px;font-size:.85rem;color:var(--muted);line-height:1.5}
+  .hist-search{display:flex;gap:8px;margin-bottom:12px}
+  .hist-search input{
+    flex:1;min-width:0;border:1px solid var(--line);border-radius:9px;padding:10px 12px;
+    font-size:.88rem;font-family:inherit;color:var(--ink)
+  }
+  .hist-search input:focus{outline:none;border-color:var(--amber)}
+  .periods{display:flex;flex-wrap:wrap;gap:6px;margin-bottom:14px}
+  .per{
+    border:1px solid var(--line);background:#fff;border-radius:20px;padding:5px 13px;
+    font-size:.78rem;cursor:pointer;font-family:inherit;color:var(--muted);transition:all .15s
+  }
+  .per:hover{border-color:var(--amber);color:var(--ink)}
+  .per.on{background:var(--ink);color:#fff;border-color:var(--ink)}
+  .hist-results{display:flex;flex-direction:column;gap:6px}
+  .hist-results:empty{display:none}
+  .hr-item{
+    display:flex;align-items:center;gap:10px;padding:9px 12px;border:1px solid var(--line);
+    border-radius:9px;cursor:pointer;background:#fff;transition:border-color .15s
+  }
+  .hr-item:hover{border-color:var(--amber);background:#fdfaf5}
+  .hr-main{flex:1;min-width:0}
+  .hr-nm{font-weight:600;font-size:.87rem;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+  .hr-bc{font-size:.72rem;color:var(--muted);font-family:ui-monospace,Menlo,monospace}
+  .hr-fig{flex:none;text-align:right;min-width:62px}
+  .hr-fig span{display:block;font-size:.64rem;text-transform:uppercase;letter-spacing:.06em;color:var(--muted)}
+  .hr-fig b{font-size:.83rem;font-weight:700}
+  .hr-code{
+    font-size:.62rem;background:var(--ink);color:#fff;padding:1px 5px;border-radius:4px;
+    vertical-align:1px;font-weight:700
+  }
+  .hr-none{font-size:.72rem;color:#9aa0ab;font-weight:400}
+  @media(max-width:620px){
+    .hr-fig{min-width:52px}
+    .hr-fig b{font-size:.76rem}
+  }
+  .hist-detail{margin-top:14px}
+  .hist-detail:empty{display:none}
+  .hd-head{font-weight:700;font-size:1rem;margin-bottom:2px}
+  .hd-sub{font-size:.8rem;color:var(--muted);margin-bottom:12px}
+  .hd-sum{display:flex;flex-wrap:wrap;gap:8px;margin-bottom:14px}
+  .hd-chip{
+    border:1px solid var(--line);border-radius:9px;padding:8px 11px;font-size:.78rem;background:#f7f4ee
+  }
+  .hd-chip b{display:block;font-size:.9rem;margin-top:2px}
+  .up{color:var(--bad)} .down{color:var(--ok)}
+  .tl{border-left:2px solid var(--line);margin-left:6px;padding-left:14px}
+  .tl-row{position:relative;padding:7px 0;font-size:.82rem;display:flex;gap:10px;align-items:baseline}
+  .tl-row:before{
+    content:'';position:absolute;left:-19px;top:13px;width:8px;height:8px;border-radius:50%;
+    background:var(--amber)
+  }
+  .tl-ref{font-family:ui-monospace,Menlo,monospace;font-size:.75rem;color:var(--muted)}
+  .tl-cost{font-weight:700;margin-left:auto}
+  .tl-sec{font-size:.76rem;font-weight:700;letter-spacing:.08em;color:var(--amber-deep);
+    text-transform:uppercase;margin:14px 0 6px}
+  .btn-wide{
+    width:100%;margin-top:14px;border:1px solid var(--line);background:#fff;border-radius:9px;
+    padding:10px;font-size:.84rem;cursor:pointer;font-family:inherit;color:var(--ink);font-weight:600
+  }
+  .btn-wide:hover{border-color:var(--amber)}
+  .chg-table{width:100%;border-collapse:collapse;margin-top:12px;font-size:.8rem}
+  .chg-table th{
+    text-align:left;padding:7px 8px;background:#f7f4ee;font-size:.72rem;
+    text-transform:uppercase;letter-spacing:.05em;color:var(--muted);border-bottom:1px solid var(--line)
+  }
+  .chg-table td{padding:7px 8px;border-bottom:1px solid var(--line)}
+  .chg-table tr:hover td{background:#fdfaf5}
   .btn-sm{
     border:1px solid var(--line);background:#fff;border-radius:8px;
     padding:7px 12px;font-size:.8rem;cursor:pointer;font-family:inherit;color:var(--ink);
@@ -125,75 +250,106 @@
       <span class="step">SAVED</span>
     </div>
     <div class="card-b">
-      <div class="inv-loaded" id="invLoaded">
-        <span class="inv-dot"></span>
-        <div class="inv-info">
-          <div class="inv-name" id="invName"></div>
-          <div class="inv-sub" id="invSub"></div>
-        </div>
-        <div class="inv-acts">
-          <button class="btn-sm" id="btnReplace">Replace</button>
-          <button class="btn-sm danger" id="btnRemove">Remove</button>
-        </div>
+      <div class="inv-list" id="invList"></div>
+
+      <div class="inv-summary" id="invSummary"></div>
+
+      <div class="drop drop-add" id="invDrop">
+        <div class="ic">&#128196;</div>
+        <div><span class="pick" id="invPick">Upload your inventory</span> or drag here</div>
+        <div class="sub" id="invSub">You can add several files &mdash; one per brand is fine</div>
       </div>
 
-      <div class="inv-empty" id="invEmpty">
-        <div class="drop" id="invDrop">
-          <div class="ic">&#128196;</div>
-          <div><span class="pick">Upload your inventory</span> or drag here</div>
-          <div class="sub">Saved once &mdash; you won't need to upload it again</div>
-        </div>
+      <div class="inv-foot" id="invFoot">
+        <button class="btn-sm danger" id="btnRemoveAll">Remove all</button>
       </div>
-      <input type="file" id="invFile" accept=".xlsx,.xlsm">
+
+      <input type="file" id="invFile" accept=".xlsx,.xlsm" multiple>
       <div class="msg" id="invMsg"></div>
     </div>
   </div>
 
+
   <div class="card" id="supCard">
     <div class="card-h">
-      <h2>Supplier sheet</h2>
-      <span class="step">COMPARE</span>
+      <h2>Suppliers</h2>
+      <span class="step">SAVED SHEETS</span>
     </div>
     <div class="card-b">
-      <div class="drop" id="supDrop">
-        <div class="ic">&#129534;</div>
-        <div><span class="pick">Choose file</span> or drag here</div>
-        <div class="sub">.xlsx with the supplier's current cost</div>
+      <div class="sup-list" id="supList"></div>
+
+      <div class="add-sup" id="addSup">
+        <input type="text" id="newCode" placeholder="Code (e.g. PT)" maxlength="6">
+        <input type="text" id="newName" placeholder="Supplier name">
+        <button class="btn-sm" id="btnAddSup">Add</button>
       </div>
       <input type="file" id="supFile" accept=".xlsx,.xlsm">
-      <div class="chosen" id="supChosen">
-        <span class="name"></span><button class="clear" id="supClear">&#10005;</button>
-      </div>
-      <button class="go" id="go" disabled>Compare &amp; download</button>
       <div class="msg" id="supMsg"></div>
     </div>
   </div>
 
+  <div class="card" id="cmpCard">
+    <div class="card-h">
+      <h2>Compare</h2>
+      <span class="step">ALL SUPPLIERS</span>
+    </div>
+    <div class="card-b">
+      <p class="cmp-note" id="cmpNote"></p>
+      <button class="go" id="go" disabled>Compare all suppliers &amp; download</button>
+      <div class="warn" id="dupWarn"></div>
+      <div class="msg" id="cmpMsg"></div>
+    </div>
+  </div>
+
+  <div class="card" id="histCard">
+    <div class="card-h">
+      <h2>Price history</h2>
+      <span class="step">SEARCH</span>
+    </div>
+    <div class="card-b">
+      <div class="hist-search">
+        <input type="text" id="histQ" placeholder="Search by perfume name, description or barcode">
+        <button class="btn-sm" id="btnHistSearch">Search</button>
+      </div>
+
+      <div class="periods" id="periods">
+        <button class="per" data-p="all">All time</button>
+        <button class="per" data-p="last_year">Last year</button>
+        <button class="per" data-p="last_month">Last month</button>
+        <button class="per" data-p="last_week">Last week</button>
+        <button class="per" data-p="yesterday">Yesterday</button>
+      </div>
+
+      <div class="hist-results" id="histResults"></div>
+      <div class="hist-detail" id="histDetail"></div>
+
+      <button class="btn-wide" id="btnChanges">Show all price changes in this period</button>
+      <div class="msg" id="histMsg"></div>
+    </div>
+  </div>
+
   <p class="note">
-    Products are matched by <b>Barcode</b>. Matched items appear first, with anything
-    the supplier doesn't carry listed below as NOT FOUND. Supplier sheets are never
-    stored &mdash; only your inventory is saved.
+    Products are matched by <b>Barcode</b>. The output shows each supplier's cost side by
+    side, plus <b>Best Cost</b> and which supplier it came from. Every uploaded sheet is
+    archived with a reference like <b>PT-001</b> and can be re-downloaded; comparisons
+    always use each supplier's most recent sheet.
   </p>
 </div>
 
 <script>
 const $ = id => document.getElementById(id);
-const invFile=$('invFile'), supFile=$('supFile');
+const invFile = $('invFile'), supFile = $('supFile');
+let inventoryStored = false;
+let suppliersCache = [];
 
-// If the session expires mid-use, bounce to login rather than showing a
-// confusing error.
 function bounceIfUnauthorised(r){
   if(r.status===401){ window.location.href='/login'; return true; }
   return false;
 }
 
-$('signout').addEventListener('click',async ()=>{
-  try{ await fetch('/api/logout',{method:'POST'}); }catch(e){}
-  window.location.href='/login';
-});
-
 function msg(el,text,type){ el.textContent=text; el.className='msg show '+type; }
 function hide(el){ el.className='msg'; }
+function esc(t){ const d=document.createElement('div'); d.textContent=t; return d.innerHTML; }
 
 function fmtDate(iso){
   try{
@@ -203,32 +359,54 @@ function fmtDate(iso){
   }catch(e){ return ''; }
 }
 
+$('signout').addEventListener('click',async ()=>{
+  try{ await fetch('/api/logout',{method:'POST'}); }catch(e){}
+  window.location.href='/login';
+});
+
+/* ---------------- Inventory ---------------- */
+
 async function refreshInventory(){
   try{
     const r=await fetch('/api/inventory');
     if(bounceIfUnauthorised(r)) return;
     const d=await r.json();
+    inventoryStored = d.stored;
+    const list=$('invList'); list.innerHTML='';
     if(d.stored){
-      $('invLoaded').classList.add('show');
-      $('invEmpty').classList.remove('show');
-      $('invName').textContent=d.filename;
-      $('invSub').textContent=d.row_count+' products \u00b7 uploaded '+fmtDate(d.uploaded_at);
-      $('supCard').classList.remove('disabled');
-      $('go').disabled = !supFile.files.length;
+      d.files.forEach(f=>{
+        const row=document.createElement('div');
+        row.className='inv-row';
+        row.innerHTML='<span class="dot"></span>'+
+          '<div class="meta"><div class="fn"></div><div class="fsub"></div></div>'+
+          '<button class="rm" title="Remove this file">\u2715</button>';
+        row.querySelector('.fn').textContent=f.filename;
+        row.querySelector('.fsub').textContent=
+          f.row_count+' products \u00b7 added '+fmtDate(f.uploaded_at);
+        row.querySelector('.rm').addEventListener('click',()=>removeInventoryFile(f.id));
+        list.appendChild(row);
+      });
+      $('invSummary').innerHTML = d.file_count+' file'+(d.file_count>1?'s':'')+
+        ' \u00b7 <b>'+d.total_rows+'</b> products total';
+      $('invPick').textContent='Add another file';
+      $('invSub').textContent='One per brand is fine \u2014 they\u2019re combined automatically';
+      $('invFoot').classList.add('show');
     }else{
-      $('invLoaded').classList.remove('show');
-      $('invEmpty').classList.add('show');
-      $('supCard').classList.add('disabled');
-      $('go').disabled=true;
+      $('invSummary').innerHTML='';
+      $('invPick').textContent='Upload your inventory';
+      $('invSub').textContent='You can add several files \u2014 one per brand is fine';
+      $('invFoot').classList.remove('show');
     }
+    updateCompareState();
   }catch(e){
     msg($('invMsg'),'Could not reach the server.','err');
   }
 }
 
-async function uploadInventory(file){
+async function uploadInventory(fileList){
   hide($('invMsg'));
-  const fd=new FormData(); fd.append('inventory',file);
+  const fd=new FormData();
+  for(const f of fileList) fd.append('inventory',f);
   try{
     const r=await fetch('/api/inventory',{method:'POST',body:fd});
     if(bounceIfUnauthorised(r)) return;
@@ -237,20 +415,27 @@ async function uploadInventory(file){
       try{const j=await r.json(); if(j.detail) detail=j.detail;}catch(e){}
       msg($('invMsg'),detail,'err'); return;
     }
-    msg($('invMsg'),'Inventory saved.','ok');
+    const n=fileList.length;
+    msg($('invMsg'), n>1 ? (n+' files added.') : 'File added.', 'ok');
     setTimeout(()=>hide($('invMsg')),2500);
     await refreshInventory();
-  }catch(e){ msg($('invMsg'),'Network problem while saving.','err'); }
+  }catch(e){
+    msg($('invMsg'),'Network problem while saving.','err');
+  }
+}
+
+async function removeInventoryFile(id){
+  await fetch('/api/inventory/'+id,{method:'DELETE'});
+  await refreshInventory();
 }
 
 $('invDrop').addEventListener('click',()=>invFile.click());
-$('btnReplace').addEventListener('click',()=>invFile.click());
 invFile.addEventListener('change',()=>{
-  if(invFile.files[0]) uploadInventory(invFile.files[0]);
+  if(invFile.files.length) uploadInventory(invFile.files);
   invFile.value='';
 });
-$('btnRemove').addEventListener('click',async ()=>{
-  if(!confirm('Remove the saved inventory? You will need to upload it again.')) return;
+$('btnRemoveAll').addEventListener('click',async ()=>{
+  if(!confirm('Remove ALL inventory files? You will need to upload them again.')) return;
   await fetch('/api/inventory',{method:'DELETE'});
   await refreshInventory();
 });
@@ -262,59 +447,323 @@ $('btnRemove').addEventListener('click',async ()=>{
   ev.preventDefault(); $('invDrop').classList.remove('drag');
 }));
 $('invDrop').addEventListener('drop',ev=>{
-  const f=ev.dataTransfer.files[0]; if(f) uploadInventory(f);
+  if(ev.dataTransfer.files.length) uploadInventory(ev.dataTransfer.files);
 });
 
-function showSupplier(){
-  const f=supFile.files[0];
-  const box=$('supChosen');
-  if(f){ box.classList.add('show'); box.querySelector('.name').textContent=f.name; }
-  else { box.classList.remove('show'); }
-  $('go').disabled = !(f && $('invLoaded').classList.contains('show'));
+/* ---------------- Suppliers ---------------- */
+
+async function refreshSuppliers(){
+  try{
+    const r=await fetch('/api/suppliers');
+    if(bounceIfUnauthorised(r)) return;
+    const d=await r.json();
+    suppliersCache = d.suppliers || [];
+    const list=$('supList'); list.innerHTML='';
+    suppliersCache.forEach(sp=>{
+      const item=document.createElement('div');
+      item.className='sup-item';
+      item.innerHTML=
+        '<div class="sup-head">'+
+          '<span class="sup-code">'+esc(sp.code)+'</span>'+
+          '<span class="sup-nm">'+esc(sp.name)+'</span>'+
+          '<span class="sup-cur">'+
+            (sp.sheet_count ? sp.sheet_count+' sheet'+(sp.sheet_count>1?'s':'') : 'no sheets yet')+
+          '</span>'+
+          '<button class="sup-x" title="Remove supplier">\u2715</button>'+
+        '</div>'+
+        '<div class="sup-body">'+
+          '<div class="sheets"></div>'+
+          '<button class="up-btn">Upload sheet for '+esc(sp.code)+'</button>'+
+        '</div>';
+      item.querySelector('.sup-x').addEventListener('click',()=>removeSupplier(sp.code,sp.name));
+      item.querySelector('.up-btn').addEventListener('click',()=>pickSheet(sp.code));
+      list.appendChild(item);
+      loadSheets(sp.code, item.querySelector('.sheets'));
+    });
+    updateCompareState();
+  }catch(e){
+    msg($('supMsg'),'Could not load suppliers.','err');
+  }
 }
-$('supDrop').addEventListener('click',()=>supFile.click());
-supFile.addEventListener('change',()=>{ hide($('supMsg')); showSupplier(); });
-$('supClear').addEventListener('click',()=>{ supFile.value=''; showSupplier(); });
 
-['dragenter','dragover'].forEach(e=>$('supDrop').addEventListener(e,ev=>{
-  ev.preventDefault(); $('supDrop').classList.add('drag');
-}));
-['dragleave','drop'].forEach(e=>$('supDrop').addEventListener(e,ev=>{
-  ev.preventDefault(); $('supDrop').classList.remove('drag');
-}));
-$('supDrop').addEventListener('drop',ev=>{
-  if(ev.dataTransfer.files[0]){ supFile.files=ev.dataTransfer.files; hide($('supMsg')); showSupplier(); }
+async function loadSheets(code, el){
+  try{
+    const r=await fetch('/api/suppliers/'+code+'/sheets');
+    if(!r.ok) return;
+    const d=await r.json();
+    el.innerHTML='';
+    (d.sheets||[]).forEach((sh,i)=>{
+      const row=document.createElement('div');
+      row.className='sheet-row';
+      row.innerHTML='<span class="sheet-ref">'+esc(sh.ref)+'</span>'+
+        (i===0 ? '<span class="sheet-cur">CURRENT</span>' : '')+
+        '<span>'+sh.row_count+' rows</span>'+
+        '<a class="sheet-dl" href="/api/sheets/'+encodeURIComponent(sh.ref)+'/download">Download</a>';
+      el.appendChild(row);
+    });
+  }catch(e){}
+}
+
+let pendingCode = null;
+function pickSheet(code){ pendingCode = code; supFile.click(); }
+
+supFile.addEventListener('change', async ()=>{
+  if(!supFile.files.length || !pendingCode){ supFile.value=''; return; }
+  const fd=new FormData(); fd.append('sheet', supFile.files[0]);
+  const code=pendingCode;
+  pendingCode=null; supFile.value='';
+  hide($('supMsg'));
+  try{
+    const r=await fetch('/api/suppliers/'+code+'/sheets',{method:'POST',body:fd});
+    if(bounceIfUnauthorised(r)) return;
+    if(!r.ok){
+      let detail='Could not save that sheet.';
+      try{const j=await r.json(); if(j.detail) detail=j.detail;}catch(e){}
+      msg($('supMsg'),detail,'err'); return;
+    }
+    const entry=await r.json();
+    msg($('supMsg'),'Saved as '+entry.ref+'.','ok');
+    setTimeout(()=>hide($('supMsg')),3000);
+    await refreshSuppliers();
+  }catch(e){
+    msg($('supMsg'),'Network problem while saving.','err');
+  }
 });
 
-$('go').addEventListener('click',async ()=>{
-  hide($('supMsg'));
+$('btnAddSup').addEventListener('click', async ()=>{
+  const code=$('newCode').value.trim().toUpperCase();
+  const name=$('newName').value.trim();
+  if(!code || !name){ msg($('supMsg'),'Enter both a code and a name.','err'); return; }
+  const fd=new FormData(); fd.append('code',code); fd.append('name',name);
+  try{
+    const r=await fetch('/api/suppliers',{method:'POST',body:fd});
+    if(bounceIfUnauthorised(r)) return;
+    if(!r.ok){
+      let detail='Could not add supplier.';
+      try{const j=await r.json(); if(j.detail) detail=j.detail;}catch(e){}
+      msg($('supMsg'),detail,'err'); return;
+    }
+    $('newCode').value=''; $('newName').value='';
+    hide($('supMsg'));
+    await refreshSuppliers();
+  }catch(e){
+    msg($('supMsg'),'Network problem.','err');
+  }
+});
+
+$('newName').addEventListener('keydown',e=>{ if(e.key==='Enter') $('btnAddSup').click(); });
+
+async function removeSupplier(code,name){
+  if(!confirm('Remove '+name+' ('+code+') and all their saved sheets?')) return;
+  await fetch('/api/suppliers/'+code,{method:'DELETE'});
+  await refreshSuppliers();
+}
+
+/* ---------------- Compare ---------------- */
+
+function updateCompareState(){
+  const withSheets = suppliersCache.filter(s=>s.sheet_count>0);
+  $('go').disabled = !(inventoryStored && withSheets.length>0);
+  if(!inventoryStored){
+    $('cmpNote').textContent='Upload your inventory first.';
+  }else if(withSheets.length===0){
+    $('cmpNote').textContent='Add a supplier and upload their sheet to compare.';
+  }else{
+    $('cmpNote').textContent='Will compare against the latest sheet from '+
+      withSheets.map(s=>s.code).join(', ')+'.';
+  }
+}
+
+$('go').addEventListener('click', async ()=>{
+  hide($('cmpMsg'));
+  $('dupWarn').classList.remove('show');
   const btn=$('go'); const orig=btn.innerHTML;
   btn.disabled=true; btn.innerHTML='<span class="spin"></span>Comparing\u2026';
   try{
-    const fd=new FormData(); fd.append('supplier',supFile.files[0]);
-    const r=await fetch('/api/compare-supplier',{method:'POST',body:fd});
+    const r=await fetch('/api/compare-all',{method:'POST'});
     if(bounceIfUnauthorised(r)) return;
     if(!r.ok){
       let detail='Could not build the comparison.';
       try{const j=await r.json(); if(j.detail) detail=j.detail;}catch(e){}
-      msg($('supMsg'),detail,'err'); return;
+      msg($('cmpMsg'),detail,'err'); return;
     }
     const blob=await r.blob();
     const cd=r.headers.get('Content-Disposition')||'';
     const m=cd.match(/filename="?([^"]+)"?/);
     const a=document.createElement('a');
     a.href=URL.createObjectURL(blob);
-    a.download=m?m[1]:'comparison.xlsx';
-    a.click(); URL.revokeObjectURL(a.href);
-    msg($('supMsg'),'Done. Your comparison workbook has downloaded.','ok');
+    a.download = m ? m[1] : 'comparison.xlsx';
+    a.click();
+    URL.revokeObjectURL(a.href);
+
+    const n=r.headers.get('X-Supplier-Count')||'';
+    const av=r.headers.get('X-Products-Available')||'';
+    msg($('cmpMsg'),'Done \u2014 compared across '+n+' suppliers ('+av+' products available).','ok');
+
+    const dups=parseInt(r.headers.get('X-Duplicate-Barcodes')||'0',10);
+    if(dups>0){
+      $('dupWarn').textContent='Note: '+dups+' product'+(dups>1?'s appeared':' appeared')+
+        ' in more than one inventory file. The most recently added file\u2019s details were used.';
+      $('dupWarn').classList.add('show');
+    }
   }catch(e){
-    msg($('supMsg'),'Network problem \u2014 please try again.','err');
+    msg($('cmpMsg'),'Network problem \u2014 please try again.','err');
   }finally{
-    btn.innerHTML=orig; showSupplier();
+    btn.innerHTML=orig;
+    updateCompareState();
   }
 });
 
-refreshInventory();
+
+/* ---------------- History ---------------- */
+
+let histPeriod='all';
+
+document.querySelectorAll('.per').forEach(b=>{
+  if(b.dataset.p==='all') b.classList.add('on');
+  b.addEventListener('click',()=>{
+    document.querySelectorAll('.per').forEach(x=>x.classList.remove('on'));
+    b.classList.add('on');
+    histPeriod=b.dataset.p;
+    if($('histDetail').dataset.bc) showProduct($('histDetail').dataset.bc);
+  });
+});
+
+async function histSearch(){
+  const q=$('histQ').value.trim();
+  hide($('histMsg'));
+  $('histDetail').innerHTML=''; $('histDetail').dataset.bc='';
+  if(!q){ $('histResults').innerHTML=''; return; }
+  try{
+    const r=await fetch('/api/history/search?q='+encodeURIComponent(q));
+    if(bounceIfUnauthorised(r)) return;
+    const d=await r.json();
+    const box=$('histResults'); box.innerHTML='';
+    if(!d.results.length){ msg($('histMsg'),'No products matched that search.','err'); return; }
+    d.results.forEach(p=>{
+      const el=document.createElement('div');
+      el.className='hr-item';
+      const bestTxt = p.best_cost!==null && p.best_cost!==undefined
+        ? money(p.best_cost)+(p.best_code?' <span class="hr-code">'+esc(p.best_code)+'</span>':'')
+        : '<span class="hr-none">no supplier</span>';
+      const mgTxt = (p.margin_pct!==null && p.margin_pct!==undefined)
+        ? '<span class="'+(p.margin_pct<0?'up':'down')+'">'+p.margin_pct+'%</span>' : '\u2014';
+      el.innerHTML=
+        '<div class="hr-main">'+
+          '<div class="hr-nm">'+esc(p.name||'(no name)')+'</div>'+
+          '<div class="hr-bc">'+esc(p.barcode)+'</div>'+
+        '</div>'+
+        '<div class="hr-fig"><span>Last</span><b>'+money(p.last_cost)+'</b></div>'+
+        '<div class="hr-fig"><span>Sell</span><b>'+money(p.selling_price)+'</b></div>'+
+        '<div class="hr-fig"><span>Best</span><b>'+bestTxt+'</b></div>'+
+        '<div class="hr-fig"><span>Margin</span><b>'+mgTxt+'</b></div>';
+      el.addEventListener('click',()=>showProduct(p.barcode));
+      box.appendChild(el);
+    });
+  }catch(e){ msg($('histMsg'),'Could not search.','err'); }
+}
+
+$('btnHistSearch').addEventListener('click',histSearch);
+$('histQ').addEventListener('keydown',e=>{ if(e.key==='Enter') histSearch(); });
+
+function money(v){ return (v===null||v===undefined)?'\u2014':Number(v).toFixed(2); }
+
+async function showProduct(bc){
+  hide($('histMsg'));
+  try{
+    const r=await fetch('/api/history/product/'+encodeURIComponent(bc)+'?period='+histPeriod);
+    if(bounceIfUnauthorised(r)) return;
+    const d=await r.json();
+    const box=$('histDetail');
+    box.dataset.bc=bc;
+    const pr=d.product;
+    let h='<div class="hd-head">'+esc(pr.name||'(no name)')+'</div>'+
+          '<div class="hd-sub">'+esc(pr.brand||'')+
+          (pr.size?' \u00b7 '+esc(pr.size)+'ml':'')+
+          ' \u00b7 '+esc(pr.barcode)+'</div>';
+    h+='<div class="hd-sum">'+
+       '<div class="hd-chip">Last cost<b>'+money(pr.last_cost)+'</b></div>'+
+       '<div class="hd-chip">Selling price<b>'+money(pr.selling_price)+'</b></div>'+
+       '<div class="hd-chip">Best cost now<b>'+money(pr.best_cost)+
+         (pr.best_code?' <span class="hr-code">'+esc(pr.best_code)+'</span>':'')+'</b></div>'+
+       '<div class="hd-chip">Margin<b class="'+((pr.margin_pct||0)<0?'up':'down')+'">'+
+         money(pr.margin)+(pr.margin_pct!==null&&pr.margin_pct!==undefined?' ('+pr.margin_pct+'%)':'')+
+       '</b></div>'+
+       '</div>';
+
+    if(d.summary.length){
+      h+='<div class="hd-sum">';
+      d.summary.forEach(s=>{
+        const cls = s.change>0?'up':(s.change<0?'down':'');
+        const arrow = s.change>0?'\u2191':(s.change<0?'\u2193':'');
+        h+='<div class="hd-chip">'+esc(s.code)+' \u00b7 '+s.points+' sheet'+(s.points>1?'s':'')+
+           '<b class="'+cls+'">'+money(s.latest_cost)+' '+arrow+' '+
+           (s.change_pct!==null?(s.change_pct>0?'+':'')+s.change_pct+'%':'')+'</b></div>';
+      });
+      h+='</div>';
+    }
+
+    if(d.supplier_history.length){
+      h+='<div class="tl-sec">Supplier costs</div><div class="tl">';
+      d.supplier_history.forEach(p=>{
+        h+='<div class="tl-row"><span class="tl-ref">'+esc(p.ref)+'</span>'+
+           '<span>'+esc(p.supplier)+'</span>'+
+           '<span class="tl-cost">'+money(p.cost)+'</span></div>';
+      });
+      h+='</div>';
+    }else{
+      h+='<div class="tl-sec">Supplier costs</div>'+
+         '<div class="hd-sub">No supplier sheets in this period.</div>';
+    }
+
+    h+='<div class="tl-sec">Your inventory</div>';
+    if(d.inventory_history.length){
+      h+='<div class="tl">';
+      d.inventory_history.forEach(p=>{
+        h+='<div class="tl-row"><span class="tl-ref">'+esc((p.date||'').slice(0,10))+'</span>'+
+           '<span>cost '+money(p.last_cost)+'</span>'+
+           '<span class="tl-cost">sell '+money(p.selling_price)+'</span></div>';
+      });
+      h+='</div>';
+    }else{
+      h+='<div class="hd-sub">No inventory snapshots yet in this period. '+
+         'History is recorded from each new inventory upload.</div>';
+    }
+    box.innerHTML=h;
+  }catch(e){ msg($('histMsg'),'Could not load history.','err'); }
+}
+
+$('btnChanges').addEventListener('click',async ()=>{
+  hide($('histMsg'));
+  $('histResults').innerHTML='';
+  const box=$('histDetail'); box.dataset.bc='';
+  box.innerHTML='<div class="hd-sub">Loading\u2026</div>';
+  try{
+    const r=await fetch('/api/history/changes?period='+histPeriod+'&limit=100');
+    if(bounceIfUnauthorised(r)) return;
+    const d=await r.json();
+    if(!d.rows.length){
+      box.innerHTML='<div class="hd-sub">No price changes recorded in this period. '+
+        'At least two sheets from the same supplier are needed to show a change.</div>';
+      return;
+    }
+    let h='<div class="hd-head">'+d.count+' product'+(d.count>1?'s':'')+' changed</div>'+
+          '<div class="hd-sub">Biggest movements first</div>'+
+          '<table class="chg-table"><tr><th>Product</th><th>Supplier</th>'+
+          '<th>From</th><th>To</th><th>Change</th></tr>';
+    d.rows.forEach(r2=>{
+      const cls=r2.change>0?'up':'down';
+      h+='<tr><td>'+esc(r2.name||r2.barcode)+'</td><td>'+esc(r2.code)+'</td>'+
+         '<td>'+money(r2.from_cost)+'</td><td>'+money(r2.to_cost)+'</td>'+
+         '<td class="'+cls+'">'+(r2.change_pct>0?'+':'')+r2.change_pct+'%</td></tr>';
+    });
+    h+='</table>';
+    box.innerHTML=h;
+  }catch(e){ msg($('histMsg'),'Could not load changes.','err'); }
+});
+
+
+refreshInventory().then(refreshSuppliers);
 </script>
 </body>
 </html>

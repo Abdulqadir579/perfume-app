@@ -1,9 +1,9 @@
 """
 FastAPI app: compare a supplier sheet against the shop's inventory.
 
-The inventory is uploaded once and stored server-side (it changes weekly, so it
-can be replaced at any time). Supplier sheets are never stored — they're
-processed in memory for the request only.
+The inventory can be split across MULTIPLE files (e.g. one per brand). They're
+uploaded once, stored server-side, and merged into one catalog at compare time.
+Supplier sheets are never stored — processed in memory for the request only.
 
 Protected by a single shared password (see auth.py).
 """
@@ -15,17 +15,21 @@ from fastapi.responses import StreamingResponse, FileResponse, RedirectResponse,
 from fastapi.staticfiles import StaticFiles
 
 from . import auth, storage
-from .compare import build_comparison, validate_master, CompareError
+from . import suppliers as sup
+from . import history as hist
+from .compare import (
+    build_comparison, build_comparison_multi, validate_master, CompareError,
+)
+from .compare_multi import build_multi_supplier_comparison
+from .suppliers import SupplierError
 
 MAX_BYTES = 15 * 1024 * 1024  # 15 MB per file
 ALLOWED_EXT = (".xlsx", ".xlsm")
 XLSX_MIME = "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
 
-app = FastAPI(title="Perfume Cost & Margin Comparator", version="3.0")
+app = FastAPI(title="Perfume Cost & Margin Comparator", version="4.0")
 
 STATIC_DIR = os.path.join(os.path.dirname(__file__), "static")
-
-# Cookies are marked Secure unless explicitly disabled for plain-HTTP local dev.
 COOKIE_SECURE = os.environ.get("COOKIE_SECURE", "1") != "0"
 
 
@@ -42,19 +46,15 @@ def login_page():
 
 
 @app.post("/api/login")
-def login(request: Request, password: str = Form(...)):
+def login(password: str = Form(...)):
     if not auth.auth_configured():
         raise HTTPException(503, "Login is not configured on the server (APP_PASSWORD is not set).")
     if not auth.check_password(password):
         raise HTTPException(401, "Incorrect password.")
     resp = JSONResponse({"ok": True})
     resp.set_cookie(
-        auth.COOKIE_NAME,
-        auth.make_session(),
-        max_age=auth.SESSION_MAX_AGE,
-        httponly=True,
-        secure=COOKIE_SECURE,
-        samesite="lax",
+        auth.COOKIE_NAME, auth.make_session(),
+        max_age=auth.SESSION_MAX_AGE, httponly=True, secure=COOKIE_SECURE, samesite="lax",
     )
     return resp
 
@@ -83,8 +83,7 @@ def _stream_result(result, prefix="Perfume_Cost_Margin_Comparison"):
     stamp = datetime.now().strftime("%Y%m%d_%H%M")
     fname = f"{prefix}_{stamp}.xlsx"
     return StreamingResponse(
-        result,
-        media_type=XLSX_MIME,
+        result, media_type=XLSX_MIME,
         headers={"Content-Disposition": f'attachment; filename="{fname}"'},
     )
 
@@ -93,57 +92,172 @@ def _stream_result(result, prefix="Perfume_Cost_Margin_Comparison"):
 
 @app.get("/api/inventory", dependencies=[Depends(auth.require_auth)])
 def inventory_status():
-    """What inventory is currently stored (if any)?"""
-    meta = storage.get_meta()
-    if not meta:
-        return {"stored": False}
-    return {"stored": True, **meta}
+    """List all stored inventory files."""
+    files = storage.list_inventory_files()
+    total = sum(f.get("row_count", 0) for f in files)
+    return {"stored": len(files) > 0, "files": files, "file_count": len(files), "total_rows": total}
 
 
 @app.post("/api/inventory", dependencies=[Depends(auth.require_auth)])
-async def upload_inventory(inventory: UploadFile = File(...)):
-    """Upload or replace the stored inventory sheet."""
-    data = await _read_validated(inventory, "inventory file")
+async def upload_inventory(inventory: list[UploadFile] = File(...)):
+    """Add one or more inventory files (each added to any already stored)."""
+    added = []
+    for up in inventory:
+        data = await _read_validated(up, "inventory file")
+        try:
+            validate_master(data)  # validate BEFORE storing
+        except CompareError as e:
+            raise HTTPException(400, str(e))
+        rows = storage.count_rows(data)
+        added.append(storage.add_inventory_file(data, up.filename, rows))
+    files = storage.list_inventory_files()
+    total = sum(f.get("row_count", 0) for f in files)
+    return {"stored": True, "added": added, "files": files,
+            "file_count": len(files), "total_rows": total}
 
-    # Validate BEFORE storing, so a bad file can never replace a good one.
-    try:
-        validate_master(data)
-    except CompareError as e:
-        raise HTTPException(400, str(e))
 
-    rows = storage.count_rows(data)
-    meta = storage.save_inventory(data, inventory.filename, rows)
-    return {"stored": True, **meta}
+@app.delete("/api/inventory/{file_id}", dependencies=[Depends(auth.require_auth)])
+def delete_one_inventory(file_id: str):
+    removed = storage.remove_inventory_file(file_id)
+    if not removed:
+        raise HTTPException(404, "No inventory file with that id.")
+    files = storage.list_inventory_files()
+    return {"removed": True, "files": files, "file_count": len(files)}
 
 
 @app.delete("/api/inventory", dependencies=[Depends(auth.require_auth)])
-def delete_inventory():
-    removed = storage.clear_inventory()
-    return {"stored": False, "removed": removed}
+def delete_all_inventory():
+    storage.clear_inventory()
+    return {"stored": False, "files": [], "file_count": 0}
+
+
+# ---------- Suppliers (protected) ----------
+
+@app.get("/api/suppliers", dependencies=[Depends(auth.require_auth)])
+def list_suppliers():
+    return {"suppliers": sup.list_suppliers()}
+
+
+@app.post("/api/suppliers", dependencies=[Depends(auth.require_auth)])
+def add_supplier(code: str = Form(...), name: str = Form(...)):
+    try:
+        return sup.add_supplier(code, name)
+    except SupplierError as e:
+        raise HTTPException(400, str(e))
+
+
+@app.patch("/api/suppliers/{code}", dependencies=[Depends(auth.require_auth)])
+def rename_supplier(code: str, name: str = Form(...)):
+    try:
+        return sup.rename_supplier(code, name)
+    except SupplierError as e:
+        raise HTTPException(400, str(e))
+
+
+@app.delete("/api/suppliers/{code}", dependencies=[Depends(auth.require_auth)])
+def delete_supplier(code: str):
+    if not sup.delete_supplier(code):
+        raise HTTPException(404, "No supplier with that code.")
+    return {"removed": True}
+
+
+@app.post("/api/suppliers/{code}/sheets", dependencies=[Depends(auth.require_auth)])
+async def upload_supplier_sheet(code: str, sheet: UploadFile = File(...)):
+    """Archive a sheet for this supplier. Newest becomes their current sheet."""
+    data = await _read_validated(sheet, "supplier sheet")
+    # Validate it's usable before archiving
+    try:
+        from .compare import _norm_cols, _check_columns, SUPPLIER_REQUIRED
+        import pandas as pd
+        from io import BytesIO as _B
+        df = _norm_cols(pd.read_excel(_B(data)))
+        _check_columns(df, SUPPLIER_REQUIRED, "supplier sheet")
+    except CompareError as e:
+        raise HTTPException(400, str(e))
+    except Exception as e:
+        raise HTTPException(400, f"Could not read that supplier sheet as Excel. ({e})")
+    try:
+        entry = sup.add_sheet(code, data, sheet.filename, storage.count_rows(data))
+    except SupplierError as e:
+        raise HTTPException(400, str(e))
+    return entry
+
+
+@app.get("/api/suppliers/{code}/sheets", dependencies=[Depends(auth.require_auth)])
+def list_supplier_sheets(code: str):
+    return {"sheets": sup.list_sheets(code)}
+
+
+@app.get("/api/sheets/{ref}/download", dependencies=[Depends(auth.require_auth)])
+def download_sheet(ref: str):
+    got = sup.get_sheet_bytes(ref)
+    if not got:
+        raise HTTPException(404, "No archived sheet with that reference.")
+    filename, data = got
+    from io import BytesIO as _B
+    return StreamingResponse(
+        _B(data), media_type=XLSX_MIME,
+        headers={"Content-Disposition": f'attachment; filename="{ref}.xlsx"'},
+    )
+
+
+@app.delete("/api/sheets/{ref}", dependencies=[Depends(auth.require_auth)])
+def delete_sheet(ref: str):
+    if not sup.delete_sheet(ref):
+        raise HTTPException(404, "No archived sheet with that reference.")
+    return {"removed": True}
+
+
+@app.post("/api/compare-all", dependencies=[Depends(auth.require_auth)])
+def compare_all():
+    """Compare inventory against the CURRENT sheet of every supplier."""
+    inv_files = storage.load_inventory_files()
+    if not inv_files:
+        raise HTTPException(400, "No inventory is stored yet. Upload your inventory file(s) first.")
+    current = sup.current_sheets()
+    if not current:
+        raise HTTPException(400, "No supplier sheets saved yet. Add a supplier and upload their sheet.")
+    try:
+        result, info = build_multi_supplier_comparison(inv_files, current)
+    except CompareError as e:
+        raise HTTPException(400, str(e))
+    except Exception:
+        raise HTTPException(500, "Something went wrong while building the comparison.")
+    resp = _stream_result(result, prefix="Multi_Supplier_Comparison")
+    resp.headers["X-Supplier-Count"] = str(info["supplier_count"])
+    resp.headers["X-Products-Available"] = str(info["products_available"])
+    resp.headers["X-Duplicate-Barcodes"] = str(info["duplicate_barcodes"])
+    return resp
 
 
 # ---------- Comparison (protected) ----------
 
 @app.post("/api/compare-supplier", dependencies=[Depends(auth.require_auth)])
 async def compare_supplier(supplier: UploadFile = File(...)):
-    """Compare a supplier sheet against the STORED inventory."""
-    master_bytes = storage.load_inventory()
-    if master_bytes is None:
-        raise HTTPException(400, "No inventory is stored yet. Upload your inventory sheet first.")
+    """Compare a supplier sheet against the MERGED stored inventory."""
+    inv_files = storage.load_inventory_files()
+    if not inv_files:
+        raise HTTPException(400, "No inventory is stored yet. Upload your inventory file(s) first.")
     supplier_bytes = await _read_validated(supplier, "supplier file")
     try:
-        result = build_comparison(master_bytes, supplier_bytes)
+        result, info = build_comparison_multi(inv_files, supplier_bytes)
     except CompareError as e:
         raise HTTPException(400, str(e))
     except Exception:
         raise HTTPException(500, "Something went wrong while building the comparison. "
                                  "Please check the file is a valid Excel export and try again.")
-    return _stream_result(result)
+    resp = _stream_result(result)
+    # Surface merge/dedup info in headers so the UI can warn about duplicates
+    # without changing the download response.
+    resp.headers["X-Inventory-Files"] = str(info["file_count"])
+    resp.headers["X-Unique-Products"] = str(info["unique_products"])
+    resp.headers["X-Duplicate-Barcodes"] = str(info["duplicate_barcodes"])
+    return resp
 
 
 @app.post("/api/compare", dependencies=[Depends(auth.require_auth)])
 async def compare(master: UploadFile = File(...), supplier: UploadFile = File(...)):
-    """Original two-file endpoint — kept so existing use keeps working."""
+    """Original two-file endpoint — kept for backward compatibility."""
     master_bytes = await _read_validated(master, "shop master file")
     supplier_bytes = await _read_validated(supplier, "supplier file")
     try:
@@ -151,20 +265,41 @@ async def compare(master: UploadFile = File(...), supplier: UploadFile = File(..
     except CompareError as e:
         raise HTTPException(400, str(e))
     except Exception:
-        raise HTTPException(500, "Something went wrong while building the comparison. "
-                                 "Please check both files are valid Excel exports and try again.")
+        raise HTTPException(500, "Something went wrong while building the comparison.")
     return _stream_result(result)
+
+
+# ---------- History (protected) ----------
+
+@app.get("/api/history/search", dependencies=[Depends(auth.require_auth)])
+def history_search(q: str = "", limit: int = 25):
+    """Find products by Perfume Name, Description, or Barcode."""
+    return {"results": hist.search_products(q, limit)}
+
+
+@app.get("/api/history/product/{barcode}", dependencies=[Depends(auth.require_auth)])
+def history_product(barcode: str, period: str = "all"):
+    """Full price timeline for one product."""
+    if period not in hist.PERIODS:
+        raise HTTPException(400, f"Unknown period '{period}'.")
+    return hist.product_history(barcode, period)
+
+
+@app.get("/api/history/changes", dependencies=[Depends(auth.require_auth)])
+def history_changes(period: str = "last_month", limit: int = 300):
+    """Products whose supplier cost changed in the period."""
+    if period not in hist.PERIODS:
+        raise HTTPException(400, f"Unknown period '{period}'.")
+    return hist.changes_table(period, limit)
 
 
 # ---------- Frontend (protected) ----------
 
 @app.get("/")
 def index(request: Request):
-    """The app itself. Redirect to /login when not signed in."""
     if not auth.valid_session(request.cookies.get(auth.COOKIE_NAME)):
         return RedirectResponse("/login", status_code=302)
     return FileResponse(os.path.join(STATIC_DIR, "index.html"))
 
 
-# Static assets only (login.html is served explicitly above; index.html is gated by "/").
 app.mount("/static", StaticFiles(directory=STATIC_DIR), name="static")

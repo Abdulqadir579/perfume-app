@@ -3,110 +3,106 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Sign in &middot; Cost &amp; Margin Comparator</title>
+<title>Sign in — Fortune World General Trading</title>
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'><rect width='32' height='32' rx='7' fill='%23B8873B'/><text x='16' y='22' font-size='15' font-weight='bold' fill='white' text-anchor='middle' font-family='sans-serif'>FW</text></svg>">
 <style>
   :root{
-    --ink:#14213d; --ink-2:#1f2d50; --paper:#faf8f4; --card:#ffffff;
-    --amber:#c9842b; --amber-deep:#a86916; --line:#e7e2d8;
-    --bad:#b0392c; --muted:#6b7280;
-    --shadow:0 10px 30px rgba(20,33,61,.08);
+    --ink:#16202E;--ink-2:#1E2B3C;--brass:#B8873B;--brass-lt:#D4A55C;--brass-dk:#8C6528;
+    --paper:#F6F4EF;--line:#E4DFD5;--muted:#6E7683;--rust:#A63D2F;
   }
   *{box-sizing:border-box}
   body{
-    margin:0; background:var(--paper); color:var(--ink);
-    font-family:"Inter",system-ui,-apple-system,Segoe UI,Roboto,sans-serif;
-    -webkit-font-smoothing:antialiased;
-    min-height:100vh; display:flex; align-items:center; justify-content:center;
-    padding:20px;
+    margin:0;min-height:100vh;background:var(--ink);color:#fff;
+    font-family:"Inter",-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif;
+    display:grid;place-items:center;padding:24px;-webkit-font-smoothing:antialiased;
+    background-image:radial-gradient(circle at 20% 15%,rgba(184,135,59,.14),transparent 45%),
+                     radial-gradient(circle at 85% 85%,rgba(184,135,59,.08),transparent 40%);
   }
-  .box{width:100%;max-width:380px}
-  .eyebrow{
-    font-size:.72rem;letter-spacing:.18em;text-transform:uppercase;
-    color:var(--amber-deep);font-weight:600;margin-bottom:12px;text-align:center
+  .box{width:100%;max-width:360px}
+  .mark{display:flex;align-items:center;gap:12px;justify-content:center;margin-bottom:26px}
+  .badge{
+    width:44px;height:44px;border-radius:10px;
+    background:linear-gradient(145deg,var(--brass-lt),var(--brass-dk));
+    display:grid;place-items:center;font-weight:800;font-size:.95rem;
+    box-shadow:0 4px 16px rgba(184,135,59,.4)
   }
-  h1{font-size:1.4rem;margin:0 0 6px;text-align:center;letter-spacing:-.01em}
-  .sub{margin:0 0 24px;color:var(--muted);font-size:.9rem;text-align:center}
-
+  .nm{font-weight:700;font-size:1rem;line-height:1.25;letter-spacing:-.01em}
+  .tg{color:rgba(255,255,255,.45);font-size:.66rem;letter-spacing:.16em;text-transform:uppercase;margin-top:3px}
   .card{
-    background:var(--card);border:1px solid var(--line);
-    border-radius:16px;box-shadow:var(--shadow);padding:26px;
+    background:#fff;color:var(--ink);border-radius:14px;padding:26px;
+    box-shadow:0 20px 50px rgba(0,0,0,.32)
   }
-  label{display:block;font-size:.82rem;font-weight:600;margin-bottom:8px}
-  input[type=password]{
-    width:100%;border:1px solid var(--line);border-radius:10px;
-    padding:13px 14px;font-size:1rem;font-family:inherit;color:var(--ink);
-    background:#fff;transition:border-color .15s;
+  .card h1{margin:0 0 4px;font-size:1.06rem;letter-spacing:-.01em}
+  .card p{margin:0 0 20px;color:var(--muted);font-size:.83rem}
+  label{display:block;font-size:.76rem;font-weight:600;margin-bottom:7px}
+  input{
+    width:100%;border:1px solid var(--line);border-radius:9px;padding:12px 13px;
+    font-size:.95rem;font-family:inherit;color:var(--ink);background:#fff
   }
-  input[type=password]:focus{outline:none;border-color:var(--amber)}
+  input:focus{outline:none;border-color:var(--brass);box-shadow:0 0 0 3px rgba(184,135,59,.14)}
   button{
-    width:100%;border:none;border-radius:11px;padding:14px;font-size:1rem;
-    font-weight:600;color:#fff;background:var(--ink);cursor:pointer;
-    transition:background .15s;font-family:inherit;margin-top:16px
+    width:100%;border:none;border-radius:9px;padding:13px;font-size:.9rem;font-weight:600;
+    color:#fff;background:var(--ink);cursor:pointer;margin-top:16px;font-family:inherit;
+    transition:background .14s
   }
   button:hover:not(:disabled){background:var(--ink-2)}
-  button:disabled{background:#c7c9d1;cursor:not-allowed}
+  button:disabled{background:#C3C7CE;cursor:not-allowed}
   .spin{
-    display:inline-block;width:15px;height:15px;border:2px solid rgba(255,255,255,.35);
+    display:inline-block;width:13px;height:13px;border:2px solid rgba(255,255,255,.3);
     border-top-color:#fff;border-radius:50%;animation:sp .7s linear infinite;
-    vertical-align:-2px;margin-right:8px
+    vertical-align:-2px;margin-right:7px
   }
   @keyframes sp{to{transform:rotate(360deg)}}
-  .msg{
-    margin-top:14px;border-radius:10px;padding:12px 14px;font-size:.86rem;
-    display:none;background:#fbe9e7;color:var(--bad);border:1px solid #f3c9c4
+  .err{
+    margin-top:13px;border-radius:8px;padding:11px 13px;font-size:.82rem;display:none;
+    background:#FBEAE7;color:var(--rust);border:1px solid #F0CFC9
   }
-  .msg.show{display:block}
+  .err.show{display:block}
+  .foot{text-align:center;margin-top:20px;font-size:.72rem;color:rgba(255,255,255,.32)}
 </style>
 </head>
 <body>
 <div class="box">
-  <div class="eyebrow">Wholesale Pricing</div>
-  <h1>Cost &amp; Margin Comparator</h1>
-  <p class="sub">Sign in to continue</p>
-
+  <div class="mark">
+    <div class="badge">FW</div>
+    <div>
+      <div class="nm">Fortune World</div>
+      <div class="tg">General Trading</div>
+    </div>
+  </div>
   <div class="card">
+    <h1>Sign in</h1>
+    <p>Cost &amp; margin workspace</p>
     <label for="pw">Password</label>
     <input type="password" id="pw" autocomplete="current-password" autofocus>
     <button id="go">Sign in</button>
-    <div class="msg" id="msg"></div>
+    <div class="err" id="err"></div>
   </div>
+  <div class="foot">Authorised access only</div>
 </div>
-
 <script>
-const pw=document.getElementById('pw');
-const go=document.getElementById('go');
-const msg=document.getElementById('msg');
-
-function showErr(t){ msg.textContent=t; msg.classList.add('show'); }
-function hideErr(){ msg.classList.remove('show'); }
-
+const pw=document.getElementById('pw'),go=document.getElementById('go'),err=document.getElementById('err');
+function showErr(t){ err.textContent=t; err.classList.add('show'); }
 async function submit(){
-  if(!pw.value){ showErr('Please enter the password.'); return; }
-  hideErr();
+  if(!pw.value){ showErr('Enter your password to continue.'); return; }
+  err.classList.remove('show');
   const orig=go.innerHTML;
-  go.disabled=true; go.innerHTML='<span class="spin"></span>Signing in\u2026';
+  go.disabled=true; go.innerHTML='<span class="spin"></span>Signing in';
   try{
-    const fd=new FormData();
-    fd.append('password', pw.value);
+    const fd=new FormData(); fd.append('password',pw.value);
     const r=await fetch('/api/login',{method:'POST',body:fd});
     if(!r.ok){
       let d='Could not sign in.';
       try{const j=await r.json(); if(j.detail) d=j.detail;}catch(e){}
-      showErr(d);
-      pw.value=''; pw.focus();
-      return;
+      showErr(d); pw.value=''; pw.focus(); return;
     }
     window.location.href='/';
-  }catch(e){
-    showErr('Network problem \u2014 please try again.');
-  }finally{
-    go.disabled=false; go.innerHTML=orig;
-  }
+  }catch(e){ showErr('Network problem — please try again.'); }
+  finally{ go.disabled=false; go.innerHTML=orig; }
 }
-
 go.addEventListener('click',submit);
 pw.addEventListener('keydown',e=>{ if(e.key==='Enter') submit(); });
-pw.addEventListener('input',hideErr);
+pw.addEventListener('input',()=>err.classList.remove('show'));
 </script>
 </body>
 </html>

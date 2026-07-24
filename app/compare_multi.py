@@ -251,13 +251,15 @@ def _add_multi_summary(wb, nrow, codes, per_supplier, C, bs, mf):
     td = C["Trade Direction"]
     s = wb.create_sheet("Summary", 0)
     s.sheet_view.showGridLines = False
-    t = s.cell(row=1, column=1, value="Multi-Supplier Cost & Margin Comparison")
-    t.font = Font(name=FONT, bold=True, size=14, color="1F3864")
-    s.cell(row=2, column=1,
+    t = s.cell(row=1, column=1, value="Fortune World General Trading")
+    t.font = Font(name=FONT, bold=True, size=15, color="B8873B")
+    s.cell(row=2, column=1, value="Cost & Margin Comparison").font = \
+        Font(name=FONT, bold=True, size=11, color="16202E")
+    s.cell(row=3, column=1,
            value="Each product priced across all suppliers. Best Cost = cheapest available.").font = \
         Font(name=FONT, italic=True, size=9, color="808080")
 
-    r = 4
+    r = 5
     s.cell(row=r, column=1, value="Sheets used").font = Font(name=FONT, bold=True, size=11)
     r += 1
     for code, name, ref, _ in per_supplier:

@@ -293,6 +293,12 @@ def history_changes(period: str = "last_month", limit: int = 300):
     return hist.changes_table(period, limit)
 
 
+@app.get("/api/dashboard", dependencies=[Depends(auth.require_auth)])
+def dashboard():
+    """Headline figures for the landing view."""
+    return hist.dashboard()
+
+
 # ---------- Frontend (protected) ----------
 
 @app.get("/")

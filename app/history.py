@@ -89,6 +89,103 @@ def _inventory_catalog() -> pd.DataFrame:
     return cat.drop_duplicates(subset="Barcode", keep="last")
 
 
+def dashboard() -> dict:
+    """Headline figures for the landing view.
+
+    Everything here is derived from data already stored — no extra uploads
+    needed — so the dashboard is useful the moment a supplier sheet exists.
+    """
+    cat = _inventory_catalog()
+    product_count = 0 if cat.empty else len(cat)
+
+    suppliers = sup.list_suppliers()
+    current = sup.current_sheets()
+
+    # Best cost per product across current sheets
+    best = {}          # barcode -> (cost, code)
+    per_code_wins = {}
+    coverage = {}      # code -> how many products they carry
+    for code, _name, _ref, data in current:
+        try:
+            df = pd.read_excel(BytesIO(data))
+        except Exception:
+            continue
+        df.columns = [str(c).strip() for c in df.columns]
+        lower = {c.lower(): c for c in df.columns}
+        if "barcode" not in lower or "current cost" not in lower:
+            continue
+        bc_col, cost_col = lower["barcode"], lower["current cost"]
+        sub = df[[bc_col, cost_col]].dropna()
+        coverage[code] = len(sub)
+        for _, r in sub.iterrows():
+            bc = _bc(r[bc_col])
+            try:
+                cost = float(r[cost_col])
+            except (TypeError, ValueError):
+                continue
+            if bc not in best or cost < best[bc][0]:
+                best[bc] = (cost, code)
+
+    for _bcode, (_cost, code) in best.items():
+        per_code_wins[code] = per_code_wins.get(code, 0) + 1
+
+    # Margin health against best cost
+    at_loss = low_margin = healthy = 0
+    import_count = export_count = 0
+    total_margin_pct = 0.0
+    counted = 0
+    if not cat.empty and "Market/Selling Price" in cat.columns:
+        for _, r in cat.iterrows():
+            bc = _bc(r["Barcode"])
+            if bc not in best:
+                continue
+            try:
+                sell = float(r["Market/Selling Price"])
+            except (TypeError, ValueError):
+                continue
+            if not sell:
+                continue
+            cost = best[bc][0]
+            m = (sell - cost) / sell
+            counted += 1
+            total_margin_pct += m
+            if m < 0:
+                at_loss += 1
+            elif m < 0.15:
+                low_margin += 1
+            else:
+                healthy += 1
+            if sell > cost:
+                import_count += 1
+            elif sell < cost:
+                export_count += 1
+
+    supplier_rows = []
+    for s in suppliers:
+        code = s["code"]
+        supplier_rows.append({
+            **s,
+            "wins": per_code_wins.get(code, 0),
+            "covers": coverage.get(code, 0),
+        })
+    supplier_rows.sort(key=lambda x: x["wins"], reverse=True)
+
+    return {
+        "products": product_count,
+        "inventory_files": len(storage.list_inventory_files()),
+        "supplier_count": len(suppliers),
+        "sheets_total": len(sup.list_sheets()),
+        "priced_products": len(best),
+        "at_loss": at_loss,
+        "low_margin": low_margin,
+        "healthy": healthy,
+        "avg_margin_pct": round(total_margin_pct / counted * 100, 1) if counted else None,
+        "good_for_import": import_count,
+        "good_for_export": export_count,
+        "suppliers": supplier_rows,
+    }
+
+
 def _current_costs_for(barcodes: set) -> dict:
     """barcode -> {"best_cost": float, "best_code": str, "per_supplier": {code: cost}}
 
